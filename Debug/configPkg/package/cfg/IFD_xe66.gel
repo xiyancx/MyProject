@@ -1,0 +1,13 @@
+XDC_open() {
+    GEL_ProjectLoad("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/package/configPkg.pjt");
+    GEL_ProjectLoad("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/package/cfg/IFD_xe66.pjt");
+    GEL_ProjectSetActive("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/package/cfg/IFD_xe66.pjt");
+}
+XDC_close() {
+    GEL_ProjectClose("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/package/configPkg.pjt");
+    GEL_ProjectClose("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/package/cfg/IFD_xe66.pjt");
+}
+menuitem "XDC Package"
+hotmenu load_executable () { GEL_Load("C:/work/liu/XGD/IFD/project_20260410_ram/Debug/configPkg/IFD.xe66"); }
+hotmenu open_project () { XDC_open(); }
+hotmenu close_project () { XDC_close(); }
