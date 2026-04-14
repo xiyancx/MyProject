@@ -606,7 +606,13 @@ float sliding_fft_max_mag(uint32_t fft_size,
                           float *new_data)
 {
     uint32_t i;
-    uint8_t radix = (fft_size & 0x55555555) ? 2 : 4; // 判断是否为4的幂次
+    if (fft_size == 0 || update_size == 0 || update_size > fft_size ||
+        data_buffer == NULL || twiddle == NULL || fft_input == NULL || fft_output == NULL || new_data == NULL)
+    {
+        return 0.0f;
+    }
+
+    uint8_t radix = (fft_size & 0x55555555) ? 4 : 2; // 与其余FFT调用保持一致
     float max_mag_sq = 0.0f;
     uint32_t max_idx = 0;
 
@@ -626,7 +632,7 @@ float sliding_fft_max_mag(uint32_t fft_size,
     }
 
     // 4. 执行FFT
-    DSPF_sp_fftSPxSP(fft_size, fft_input, twiddle, fft_output, NULL,
+    DSPF_sp_fftSPxSP(fft_size, fft_input, twiddle, fft_output, brev,
                      radix, 0, fft_size);
 
     // 5. 找出最大幅度平方对应的索引（忽略直流分量时可将i从1开始）
@@ -662,6 +668,14 @@ void iir_lowpass_init(uint8_t core_id)
 void compute_core_task(UArg arg0, UArg arg1)
 {
     uint8_t core_id = CSL_chipReadReg(CSL_CHIP_DNUM);
+    if (core_id < 1 || core_id > 5)
+    {
+        printf("compute_core_task running on unexpected core %u\n", core_id);
+        while (1)
+        {
+            __asm(" NOP 5 ");
+        }
+    }
     //    if (core_id > 3) while(1) __asm(" IDLE ");
 
     // 进入空循环，不进行任何操作
@@ -711,7 +725,7 @@ void compute_core_task(UArg arg0, UArg arg1)
     //}
 
     // iir_lowpass_init(core_id - 1);
-    memset(y1[core_id], 0, IIR_STATE_LEN * sizeof(float));
+    memset(y1[core_id - 1], 0, IIR_STATE_LEN * sizeof(float));
     memset(slip_history[core_id -1], 0 , SLIP_HISTORY_LEN * sizeof(float));
 
     while (1)
@@ -760,7 +774,7 @@ void compute_core_task(UArg arg0, UArg arg1)
                 lms_result_counter[core_id - 1] = 0;
 
             shared_wb(&g_shared_results.algorithm_amplitude[core_id - 1], sizeof(float));
-            shared_wb(&lms_result_counter[core_id - 1], sizeof(uint32_t));
+            shared_wb(&lms_result_counter[core_id - 1], sizeof(uint8_t));
         }
         else if (devParams.algorithmMode == 1)
         {
@@ -768,19 +782,24 @@ void compute_core_task(UArg arg0, UArg arg1)
             Cache_inv((void *)srio_data_addr_core, single_data_size, Cache_Type_ALL, CACHE_WAIT);
             if (devParams.fft_time_window == 2)
             {
-                for (i = 0; i < DATA_BLOCK_SIZE; i++)
+                uint32_t sample_count = DATA_BLOCK_SIZE / 2;
+                for (i = 0; i < (int)sample_count; i++)
                 {
-                    /* 处理每个分配的轴 */
+                    /* FFT path: down-sample by 2 so 65536-point sliding FFT accumulates ~2s data. */
                     axis_signal_new[i] = (float)srio_data_addr_core[i * 2] * factor;
                 }
-                // 仅对前3个核执行MAD滤波
+                /* MAD path: always use original 4096 points at 50kHz before low-pass to ~100Hz. */
                 if ((core_id == 1) || (core_id == 2) || (core_id == 3))
                 {
-                    mad_axis_signal[core_id - 1] = lowpass_filter_process(core_id - 1, axis_signal_new, DATA_BLOCK_SIZE);
+                    for (i = 0; i < DATA_BLOCK_SIZE; i++)
+                    {
+                        axis_signal[i] = (float)srio_data_addr_core[i] * factor;
+                    }
+                    mad_axis_signal[core_id - 1] = lowpass_filter_process(core_id - 1, axis_signal, DATA_BLOCK_SIZE);
                     shared_wb(&mad_axis_signal[core_id - 1], sizeof(float));
                 }
 
-                g_shared_results.algorithm_amplitude[core_id - 1] = sliding_fft_max_mag(FFT_NUM_SLIP, DATA_BLOCK_SIZE / 2,
+                g_shared_results.algorithm_amplitude[core_id - 1] = sliding_fft_max_mag(FFT_NUM_SLIP, sample_count,
                 		history, g_twiddle_fft_SLIP, g_fft_input[core_id - 1], g_fft_output[core_id - 1], axis_signal_new);
             }
             else
@@ -811,7 +830,7 @@ void compute_core_task(UArg arg0, UArg arg1)
                 fft_result_counter[core_id - 1] = 0;
             }
             shared_wb(&g_shared_results.algorithm_amplitude[core_id - 1], sizeof(float));
-            shared_wb(&fft_result_counter[core_id - 1], sizeof(uint32_t));
+            shared_wb(&fft_result_counter[core_id - 1], sizeof(uint8_t));
         }
 
         __asm(" NOP 5 ");

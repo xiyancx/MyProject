@@ -29,7 +29,8 @@ int nand_intialize(void)
     }
 
     // 纭繚涓存椂缂撳啿鍖鸿冻澶熷ぇ
-    if (nand_info.page_size > sizeof(s_page_buffer))
+    if (nand_info.page_size == 0 || nand_info.page_count == 0 || nand_info.block_count == 0 ||
+        nand_info.page_size > sizeof(s_page_buffer))
     {
         printf("Page size %d exceeds buffer size %d\n", nand_info.page_size, (int)sizeof(s_page_buffer));
         return -1;
@@ -42,6 +43,14 @@ int erase_result_block(void)
     uint32_t block;
     uint32_t start_block = NAND_RESULT_START_BLOCK;
     uint32_t end_block = start_block + (NAND_RESULT_SIZE / NAND_BLOCK_SIZE);
+    if (start_block >= nand_info.block_count)
+    {
+        return -1;
+    }
+    if (end_block > nand_info.block_count)
+    {
+        end_block = nand_info.block_count;
+    }
     int ret = 0;  // 假设成功
 
     for (block = start_block; block < end_block; block++)
@@ -58,6 +67,11 @@ int erase_result_block(void)
 // 淇濆瓨甯ц鏁板埌涓撶敤鍧楋紙姣忔鍐欏墠鎿﹂櫎鏁翠釜鍧楋級
 int save_frame_counter(uint32_t counter)
 {
+    if (nand_info.page_size == 0 || nand_info.page_size > sizeof(s_page_buffer))
+    {
+        return -1;
+    }
+
     nand_addr addr;
     addr.block_addr = NAND_COUNTER_BLOCK;
     addr.page_addr = 0;   // 浣跨敤鍧楀唴绗�椤�
@@ -71,7 +85,9 @@ int save_frame_counter(uint32_t counter)
     }
 
     // 2. 鍐欏叆鏁版嵁锛堟暣椤靛啓鍏ワ級
-    if (nand_write_page(addr, (uint8_t *)&counter) != 0)
+    memset(s_page_buffer, 0, nand_info.page_size);
+    memcpy(s_page_buffer, &counter, sizeof(counter));
+    if (nand_write_page(addr, s_page_buffer) != 0)
     {
         printf("Error: write page failed at block %d page %d\n", addr.block_addr, addr.page_addr);
         return -1;
@@ -83,6 +99,10 @@ int save_frame_counter(uint32_t counter)
 // 浠庝笓鐢ㄥ潡璇诲彇甯ц鏁�
 // 假设已有 static uint8_t s_page_buffer[4096];
 int load_frame_counter(uint32_t *counter) {
+    if (counter == NULL)
+    {
+        return -1;
+    }
     nand_addr addr;
     addr.block_addr = NAND_COUNTER_BLOCK;
     addr.page_addr = 0;
@@ -94,13 +114,18 @@ int load_frame_counter(uint32_t *counter) {
         return -1;
     }
     // 从缓冲区前4字节提取计数器值
-    *counter = *(uint32_t*)s_page_buffer;
+    memcpy(counter, s_page_buffer, sizeof(*counter));
     return 0;
 }
 
 // 淇濆瓨鏃ユ湡鏃堕棿鎴筹紙绫讳技瀹炵幇锛�
 int save_timestamp(uint64_t timestamp)
 {
+    if (nand_info.page_size == 0 || nand_info.page_size > sizeof(s_page_buffer))
+    {
+        return -1;
+    }
+
     nand_addr addr;
     addr.block_addr = NAND_DATE_BLOCK;
     addr.page_addr = 0;
@@ -108,13 +133,19 @@ int save_timestamp(uint64_t timestamp)
 
     if (nand_erase_block(addr.block_addr) != 0)
         return -1;
-    if (nand_write_page(addr, (uint8_t *)&timestamp) != 0)
+    memset(s_page_buffer, 0, nand_info.page_size);
+    memcpy(s_page_buffer, &timestamp, sizeof(timestamp));
+    if (nand_write_page(addr, s_page_buffer) != 0)
         return -1;
     return 0;
 }
 
 int load_timestamp(uint64_t *timestamp)
 {
+    if (timestamp == NULL)
+    {
+        return -1;
+    }
     nand_addr addr;
     addr.block_addr = NAND_DATE_BLOCK;
     addr.page_addr = 0;
@@ -125,7 +156,7 @@ int load_timestamp(uint64_t *timestamp)
         return -1;
     }
     // 从缓冲区前8字节提取时间值
-    *timestamp = *(uint64_t*)s_page_buffer;
+    memcpy(timestamp, s_page_buffer, sizeof(*timestamp));
     return 0;
 }
 
@@ -142,10 +173,24 @@ int nandflash_read(uint32_t addr, uint32_t size, uint8_t *read_buffer)
     {
         return -1;
     }
+    if (nand_info.page_size == 0 || nand_info.page_count == 0 || nand_info.block_count == 0 ||
+        nand_info.page_size > sizeof(s_page_buffer))
+    {
+        return -1;
+    }
+    if (nand_info.page_count > (0xFFFFFFFFu / nand_info.page_size))
+    {
+        return -1;
+    }
 
     uint32_t page_size = nand_info.page_size;
     uint32_t pages_per_block = nand_info.page_count;
     uint32_t block_size = pages_per_block * page_size;
+    uint64_t total_size = (uint64_t)block_size * nand_info.block_count;
+    if ((uint64_t)addr >= total_size || (uint64_t)size > (total_size - (uint64_t)addr))
+    {
+        return -1;
+    }
 
     // 璁＄畻璧峰鍧椼�椤靛唴鍋忕Щ
     uint32_t start_block = addr / block_size;
@@ -210,11 +255,20 @@ int nand_read_result_frames(uint32_t start_frame, uint32_t num_frames, uint8_t *
 
     uint32_t bytes_per_result = sizeof(SharedResults_t);  // 24
     uint32_t valid_per_page = RESULTS_PER_PAGE * bytes_per_result;  // 2040
-    uint32_t page_size = NAND_PAGE_SIZE;  // 2048
+    uint32_t page_size = nand_info.page_size;
+    uint32_t max_frames = NAND_RESULT_SIZE / bytes_per_result;
+    if (page_size == 0 || page_size > sizeof(s_page_buffer) || page_size < valid_per_page)
+    {
+        return -1;
+    }
+    if (start_frame >= max_frames || num_frames > (max_frames - start_frame))
+    {
+        return -1;
+    }
     uint32_t logical_offset = start_frame * bytes_per_result;
     uint32_t size = num_frames * bytes_per_result;
     uint32_t buf_pos = 0;
-    uint8_t temp_page[NAND_PAGE_SIZE];   // 修正：页大小，而非 RESULTS_PER_PAGE
+    uint8_t temp_page[4096];
 
     while (size > 0) {
         uint32_t page_idx = logical_offset / valid_per_page;
@@ -250,10 +304,24 @@ int nandflash_write(uint32_t addr, uint32_t size, uint8_t *write_buffer)
     {
         return -1;
     }
+    if (nand_info.page_size == 0 || nand_info.page_count == 0 || nand_info.block_count == 0 ||
+        nand_info.page_size > sizeof(s_page_buffer))
+    {
+        return -1;
+    }
+    if (nand_info.page_count > (0xFFFFFFFFu / nand_info.page_size))
+    {
+        return -1;
+    }
 
     uint32_t page_size = nand_info.page_size;
     uint32_t pages_per_block = nand_info.page_count;
     uint32_t block_size = pages_per_block * page_size;
+    uint64_t total_size = (uint64_t)block_size * nand_info.block_count;
+    if ((uint64_t)addr >= total_size || (uint64_t)size > (total_size - (uint64_t)addr))
+    {
+        return -1;
+    }
 
     // 璁＄畻璧峰鍧椼�椤靛唴鍋忕Щ
     uint32_t start_block = addr / block_size;

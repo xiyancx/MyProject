@@ -374,7 +374,7 @@ void init_sgmii(uint32_t macPortNum)
 static uint8_t data_buf[MAX_DATA_LEN];
 static uint8_t recv_buf[PROTOCOL_BUFFER_SIZE];
 static uint8_t send_buf[PROTOCOL_BUFFER_SIZE]; // 假设这是你定义的发送缓冲区
-static uint8_t resp_data[64];
+static uint8_t resp_data[PROTOCOL_BUFFER_SIZE];
 // long long resultFrameCounter= 0;
 void ProtocolServerTask(void)
 {
@@ -454,13 +454,13 @@ void ProtocolServerTask(void)
         {
             int err = fdError();
 
-            printf("recvfrom returned %d, errno=%d (%s)\n", recv_len, err, strerror(err));
+            // printf("recvfrom returned %d, errno=%d (%s)\n", recv_len, err, strerror(err));
 
             // 打印 socket 状态（可选）
             int sock_err;
             socklen_t len = sizeof(sock_err);
             getsockopt(sock, SOL_SOCKET, SO_ERROR, &sock_err, &len);
-            printf("socket SO_ERROR: %d\n", sock_err);
+            // printf("socket SO_ERROR: %d\n", sock_err);
 
             // 根据错误码分别处理
             switch (err)
@@ -517,6 +517,7 @@ void ProtocolServerTask(void)
         last_recv_time = get_cycles(); // 需要实现毫秒级时间函数
 
         /* Parse protocol frame */
+        cmd_code = 0;
         ret = protocol_parse_frame(recv_buf, recv_len, &cmd_code, &cmd_type, data_buf, &data_len);
         printf("Received command: 0x%02X, type: 0x%02X, data length: %d\n", cmd_code, cmd_type, data_len);
 
@@ -534,8 +535,7 @@ void ProtocolServerTask(void)
             if (cmd_type != INFO_HEARTBEAT)
             {
                 // 处理命令
-                uint16_t status = protocol_process_command(cmd_code, data_buf, data_len,
-                                                           resp_data, &resp_data_len);
+                uint16_t status = protocol_process_command(cmd_code, data_buf, data_len, resp_data, &resp_data_len, sizeof(resp_data));
 
                 // 构建正常响应
                 resp_len = protocol_build_frame(send_buf, cmd_code, resp_data, resp_data_len, INFO_TYPE_RESP, 0, 0, 0x00);
@@ -576,6 +576,19 @@ void ProtocolServerTask(void)
             #endif
             uint32_t frames_per_packet = RESULT_NUM_ONCE_READ;
             uint32_t bytes_per_read = frames_per_packet * sizeof(SharedResults_t);
+            if (frames_per_packet == 0)
+            {
+                printf("Invalid frames_per_packet=0\n");
+                Task_sleep(1);
+                continue;
+            }
+            if ((bytes_per_read + sizeof(uint32_t)) > sizeof(data_buf))
+            {
+                printf("Result packet size overflow: %u > %u\n",
+                       (uint32_t)(bytes_per_read + sizeof(uint32_t)), (uint32_t)sizeof(data_buf));
+                Task_sleep(1);
+                continue;
+            }
             uint32_t total_packets = (total_frames + frames_per_packet - 1) / frames_per_packet;
             printf("Total frames to send: %u, Frames per packet: %u, Total packets: %u\n", total_frames, frames_per_packet, total_packets);
             for (i = 0; i < total_packets; i++)
@@ -584,6 +597,7 @@ void ProtocolServerTask(void)
                 uint32_t frames_this = (start_frame + frames_per_packet > total_frames) ? (total_frames - start_frame) : frames_per_packet;
                 uint32_t bytes_this = frames_this * sizeof(SharedResults_t);
                 memcpy(data_buf, &i, sizeof(uint32_t)); // 将包序号写入数据缓冲区
+                memset(data_buf + sizeof(uint32_t), 0, bytes_per_read); // 尾包不足一整包时补零，保证固定长度
                 // nandflash_read(NAND_RESULT_START_ADDR + i * bytes_per_read, bytes_per_read, data_buf + sizeof(uint32_t)); // 从 NAND 读取结果数据
                 // 使用新函数按逻辑帧读取
                 #ifdef RESTORE_NAND
@@ -595,6 +609,11 @@ void ProtocolServerTask(void)
                 #endif
 
                 #ifdef RESTORE_RAM
+                if (resultPtr == NULL)
+                {
+                    printf("resultPtr is NULL, skip sending result data\n");
+                    break;
+                }
                 memcpy(data_buf + sizeof(uint32_t), (SharedResults_t *)resultPtr + start_frame, bytes_this); // 从 RAM 读取结果数据
                 #endif
 
@@ -609,13 +628,13 @@ void ProtocolServerTask(void)
                 }
                 Task_sleep(1);
             }
-            shared_inv(resultPtr, sizeof(resultPtr)); // 使缓存无效，确保数据一致
+            shared_inv(&resultPtr, sizeof(resultPtr)); // 同步指针变量本身，避免对NULL地址做Cache操作
             if(resultPtr != NULL)
             {
                 free((void *)resultPtr);
                 resultPtr = NULL;
             }
-            shared_wb(resultPtr, sizeof(resultPtr)); // 写回缓存，确保数据一致
+            shared_wb(&resultPtr, sizeof(resultPtr)); // 写回指针变量，确保多核一致
         }
         Task_sleep(1);
     }
@@ -773,9 +792,17 @@ RESET_EXIT:
 
 void ServiceReport(uint Item, uint Status, uint Report, HANDLE h)
 {
+    const char *itemStr = (Item >= 1 && Item <= (sizeof(TaskName) / sizeof(TaskName[0]))) ?
+                          TaskName[Item - 1] : "UnknownItem";
+    const char *statusStr = (Status < (sizeof(StatusStr) / sizeof(StatusStr[0]))) ?
+                            StatusStr[Status] : "UnknownStatus";
+    uint32_t reportIdx = Report / 256;
+    const char *reportStr = (reportIdx < (sizeof(ReportStr) / sizeof(ReportStr[0]))) ?
+                            ReportStr[reportIdx] : "UnknownReport";
+
     printf("Service Status: %-9s: %-9s: %-9s: %03d\n",
-           TaskName[Item - 1], StatusStr[Status],
-           ReportStr[Report / 256], Report & 0xFF);
+           itemStr, statusStr,
+           reportStr, Report & 0xFF);
 
     if (Item == CFGITEM_SERVICE_DHCPCLIENT &&
         Status == CIS_SRV_STATUS_ENABLED &&
@@ -803,7 +830,7 @@ void ServiceReport(uint Item, uint Status, uint Report, HANDLE h)
         tmp = sizeof(dhcpc);
         CfgEntryGetData(h, &tmp, (UINT8 *)&dhcpc);
 
-        TaskCreate(DHCP_reset, "DHCPreset", OS_TASKPRINORM, 0x1000,
+        TaskCreate(DHCP_reset, "DHCPreset", OS_TASKPRINORM, 0x4000,
                    dhcpc.cisargs.IfIdx, 1, 0);
     }
 }
@@ -851,15 +878,15 @@ void netTask(UArg arg0, UArg arg1)
 
     //add 20260411
     // 复位 QMSS 全局（具体寄存器参考芯片手册）
-    CSL_BootCfgUnlockKicker();
+    //CSL_BootCfgUnlockKicker();
     // 设置 QMSS 软件复位
     //CSL_QmssEnableReset();   // 需要自行实现或调用 PDK 接口
     //CSL_QmssDisableReset();
-    QMSS_reset();
+    //QMSS_reset();
     // 复位 CPPI 和 PA 同理
-    CSL_CppiReset();
-    CSL_PaReset();
-    CSL_BootCfgLockKicker();
+    //CSL_CppiReset();
+    //CSL_PaReset();
+    //CSL_BootCfgLockKicker();
     //add finish
 
 

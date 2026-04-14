@@ -38,7 +38,7 @@
 
 --args 0x0
 -heap  0x0
--stack 0x1000
+-stack 0x10000
 
 MEMORY
 {
@@ -109,13 +109,11 @@ MEMORY
 
 /* Content from ti.ndk.config (null): */
 
+/* Content from ti.sysbios.family.c66.tci66xx (null): */
+
 /* Content from ti.sysbios.gates (null): */
 
 /* Content from ti.sysbios.heaps (null): */
-
-/* Content from ti.sysbios.utils (null): */
-
-/* Content from ti.sysbios.family.c66.tci66xx (null): */
 
 /* Content from xdc.runtime.knl (null): */
 
@@ -132,6 +130,8 @@ MEMORY
 /* Content from ti.sysbios.family.c64p.tci6488 (null): */
 
 /* Content from ti.ndk.config.family (null): */
+
+/* Content from ti.sysbios.utils (null): */
 
 /* Content from ti.catalog.c6000 (null): */
 

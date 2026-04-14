@@ -37,7 +37,8 @@ typedef struct {
     uint8_t LMSOrder;
     uint8_t LMSStep; //���� /1000
 
-    uint16_t MADStopFreq;   //0.1Hz, 0.5Hz, 1.0Hz corresponding to 0, 1, 2
+    uint8_t MADStopFreq;   //0.1Hz, 0.5Hz, 1.0Hz corresponding to 0, 1, 2
+    uint8_t DACFactor;
 
     //uint16_t  sensitivity_Fluxgate;        // Sensitivity coefficient
     //uint16_t  sensitivity_induction;        // Sensitivity coefficient

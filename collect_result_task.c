@@ -5,6 +5,7 @@
 #include <inc/mathlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "nand_op.h"
 #include "shared_mem.h"
@@ -25,7 +26,13 @@ uint32_t process_frame_counter = 0;
 static uint32_t next_free_page = 0; // NAND结果区的下一个空闲页索引
 void flush_result_buffer(void)
 {
-    uint32_t frames_in_buffer = process_frame_counter - (next_free_page * RESULTS_PER_PAGE);
+    uint32_t written_frames = next_free_page * RESULTS_PER_PAGE;
+    if (process_frame_counter < written_frames)
+    {
+        printf("Warning: process_frame_counter rollback detected\n");
+        return;
+    }
+    uint32_t frames_in_buffer = process_frame_counter - written_frames;
     if (frames_in_buffer == 0)
         return;
     uint32_t page_addr = NAND_RESULT_START_ADDR + (next_free_page * NAND_PAGE_SIZE);
@@ -41,15 +48,22 @@ void flush_result_buffer(void)
     next_free_page++;
 
     uint8_t verify_buf[64];
-    nandflash_read(page_addr, 64, verify_buf);
-    if (memcmp(verify_buf, result_buffer, 64) != 0)
+    uint32_t verify_len = (bytes_to_write < sizeof(verify_buf)) ? bytes_to_write : sizeof(verify_buf);
+    if (verify_len > 0 && nandflash_read(page_addr, verify_len, verify_buf) == 0 &&
+        memcmp(verify_buf, result_buffer, verify_len) != 0)
     {
         printf("Verify failed at page %u\n", next_free_page);
     }
 }
 void flush_all_results(void)
 {
-    uint32_t frames_in_buffer = process_frame_counter - (next_free_page * RESULTS_PER_PAGE);
+    uint32_t written_frames = next_free_page * RESULTS_PER_PAGE;
+    if (process_frame_counter < written_frames)
+    {
+        printf("Warning: process_frame_counter rollback detected\n");
+        return;
+    }
+    uint32_t frames_in_buffer = process_frame_counter - written_frames;
     if (frames_in_buffer == 0)
         return;
 
@@ -69,6 +83,10 @@ void flush_all_results(void)
 
 void add_result(SharedResults_t *res)
 {
+    if (res == NULL)
+    {
+        return;
+    }
     memcpy(&result_buffer[process_frame_counter % RESULTS_PER_PAGE], res, sizeof(SharedResults_t));
     process_frame_counter++;
     if (process_frame_counter % RESULTS_PER_PAGE == 0)
@@ -144,7 +162,7 @@ void collect_results_task(UArg arg0, UArg arg1)
 
             // nandflash_write(NAND_RESULT_START_ADDR + process_frame_counter * restore_size, restore_size, (uint8_t *)&g_shared_results);
             #ifdef RESTORE_RAM
-            shared_inv(resultPtr, sizeof(resultPtr));
+            shared_inv(&resultPtr, sizeof(resultPtr));
             if ((process_frame_counter < MAX_RESULE_NUMBER) && (resultPtr != NULL))
             {
                 memcpy((uint8_t *)resultPtr + process_frame_counter * sizeof(SharedResults_t), (uint8_t *)&g_shared_results, sizeof(SharedResults_t));

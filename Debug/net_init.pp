@@ -303,6 +303,90 @@ net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/pack
 net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/interfaces/ICache.h
 net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
 net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/errno.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/_tls.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/time.h
+net_init.obj: ../system/resource_mgr.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_semAux.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_sem.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_sem.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cacheAux.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cache.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cgem.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppi_drv.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_global_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_rx_channel_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_rx_flow_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_tx_channel_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_tx_scheduler_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cppi.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppiver.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppi_desc.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_drv.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmssver.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_qm.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_descriptor_region_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_queue_management.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_queue_status_config.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_pdsp.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_intd.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_mcdma.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cp_timer16.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_qm_queue.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_acc.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_drv.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_qos.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_mgmt.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/include/qmss_pvt.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_osal.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/pa/pa.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/pa/paver.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Timestamp.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampClient.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampProvider.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampClient.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/package/Timestamp_SupportProxy.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampProvider.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/package/Timestamp_SupportProxy.h
+net_init.obj: ../net_init.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/netmain.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_nettool.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_netctrl.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_stack.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/tools/console.h
+net_init.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h
+net_init.obj: C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/tools/servers.h
+net_init.obj: ../protocol.h
+net_init.obj: ../srio.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_srio.h
+net_init.obj: C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_srio.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Mailbox.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IInstance.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Semaphore.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IHeap.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Event.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Assert.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Queue.h
+net_init.obj: C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Semaphore.h
+net_init.obj: ../shared_mem.h
+net_init.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/Cache.h
+net_init.obj: ../nand_op.h
 
 ../net_init.c: 
 C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h: 
@@ -607,3 +691,87 @@ C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/package/package.de
 C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/interfaces/ICache.h: 
 C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
 C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/errno.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/_tls.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/time.h: 
+../system/resource_mgr.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_semAux.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_sem.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_sem.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cacheAux.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cache.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cgem.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppi_drv.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_global_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_rx_channel_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_rx_flow_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_tx_channel_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cppidma_tx_scheduler_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_cppi.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppiver.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/cppi/cppi_desc.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_drv.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmssver.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_qm.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_descriptor_region_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_queue_management.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_queue_status_config.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_pdsp.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_qm_intd.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_mcdma.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_cp_timer16.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_qm_queue.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_acc.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_drv.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_qos.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_mgmt.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/include/qmss_pvt.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/qmss/qmss_osal.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/pa/pa.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/drv/pa/paver.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Timestamp.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampClient.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampProvider.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampClient.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/package/Timestamp_SupportProxy.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/ITimestampProvider.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/package/Timestamp_SupportProxy.h: 
+../net_init.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/netmain.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_nettool.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_netctrl.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/_stack.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/tools/console.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdlib.h: 
+C:/PROGRA~1/ti/ndk_2_21_02_43/packages/ti/ndk/inc/tools/servers.h: 
+../protocol.h: 
+../srio.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/csl_srio.h: 
+C:/Program\ Files/ti/pdk_C6678_1_1_2_6/packages/ti/csl/cslr_srio.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Mailbox.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Types.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IInstance.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Semaphore.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IHeap.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Event.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/Assert.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Queue.h: 
+C:/PROGRA~1/ti/xdctools_3_23_04_60/packages/xdc/runtime/IModule.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/knl/Semaphore.h: 
+../shared_mem.h: 
+C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/Cache.h: 
+../nand_op.h: 

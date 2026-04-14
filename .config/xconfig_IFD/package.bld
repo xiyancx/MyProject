@@ -11,7 +11,7 @@ var makeAssembly = false;
 var Executable = xdc.module('xdc.bld.Executable');
 
 var exeOpts = new Executable.Attrs({
-        cfgScript: 'C:/work/liu/XGD/IFD/project_20260409_ram/IFD.cfg',
+        cfgScript: 'C:/work/liu/XGD/IFD/project_20260410_ram/IFD.cfg',
         profile: 'release',
         cfgHome: 'xconfig_IFD',
 });
@@ -47,8 +47,8 @@ else {
 }
 
 var thisObj = {
-    cfg:        'C:/work/liu/XGD/IFD/project_20260409_ram/IFD.cfg',
-    outputPath: 'C:/work/liu/XGD/IFD/project_20260409_ram/.config/xconfig_IFD',
+    cfg:        'C:/work/liu/XGD/IFD/project_20260410_ram/IFD.cfg',
+    outputPath: 'C:/work/liu/XGD/IFD/project_20260410_ram/.config/xconfig_IFD',
     exeName:    'IFD' + suffix,
     exeIntName: 'IFD' + suffix.replace('.', '_'),
     targ:       targ,

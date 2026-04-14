@@ -110,7 +110,8 @@ uint16_t protocol_build_frame(uint8_t *send_buf, uint8_t cmd_code,
                               uint8_t info_type, uint8_t seq_num, uint8_t ack_num, uint8_t flags);
 
 uint16_t protocol_process_command(uint8_t cmd_code, const uint8_t *req_data,
-                                 uint8_t  req_len, uint8_t *resp_data, uint16_t *resp_len);
+                                 uint8_t  req_len, uint8_t *resp_data, uint16_t *resp_len,
+                                 uint16_t resp_buf_size);
 
 // Device status management
 uint8_t protocol_get_device_status(void);

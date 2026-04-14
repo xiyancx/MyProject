@@ -28,6 +28,63 @@ uint64_t timestamp;
 
 extern void flush_all_results(void);
 
+static void sanitize_runtime_params(void)
+{
+    if (devParams.algorithmMode > 1)
+    {
+        printf("Warning: algorithmMode=%u out of range, force to 0\n", devParams.algorithmMode);
+        devParams.algorithmMode = 0;
+    }
+
+    if (devParams.fft_time_window > 2)
+    {
+        printf("Warning: fft_time_window=%u out of range, force to 0\n", devParams.fft_time_window);
+        devParams.fft_time_window = 0;
+    }
+
+    if (devParams.LMSOrder == 0 || devParams.LMSOrder > 32)
+    {
+        printf("Warning: LMSOrder=%u out of range, force to 16\n", devParams.LMSOrder);
+        devParams.LMSOrder = 16;
+    }
+
+    if (devParams.signalFrequency == 0 || devParams.signalFrequency > 25000)
+    {
+        printf("Warning: signalFrequency=%u out of range, force to 1000\n", devParams.signalFrequency);
+        devParams.signalFrequency = 1000;
+    }
+
+    if (devParams.MADTimes == 0)
+    {
+        printf("Warning: MADTimes is 0, force to 1\n");
+        devParams.MADTimes = 1;
+    }
+
+    if (devParams.LMSTimes == 0)
+    {
+        printf("Warning: LMSTimes is 0, force to 1\n");
+        devParams.LMSTimes = 1;
+    }
+
+    if (devParams.FFTTimes == 0)
+    {
+        printf("Warning: FFTTimes is 0, force to 1\n");
+        devParams.FFTTimes = 1;
+    }
+
+    if (devParams.LMSStep == 0)
+    {
+        printf("Warning: LMSStep is 0, force to 1\n");
+        devParams.LMSStep = 1;
+    }
+
+    if (devParams.DACFactor == 0)
+    {
+        printf("Warning: DACFactor is 0, force fallback to 39\n");
+        devParams.DACFactor = 39;
+    }
+}
+
 // CRC-16/CCITT查找表（多项式0x1021，初始值0xFFFF）
 static const uint16_t crc16_ccitt_table[256] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
@@ -107,19 +164,24 @@ int32_t protocol_parse_frame(uint8_t *recv_buf, uint16_t recv_len,
         printf("Parse error: Length mismatch: header says %d, received %d\n", total_len, recv_len);
         return -4;
     }
-    // 信息单元内容长度 = total_len - 26
-    uint16_t info_content_len = total_len - 26 - 2; // 减去帧头长度和CRC长度
+    if (total_len < (sizeof(NetFrameHeader) + NET_CRC_LEN))
+    {
+        printf("Parse error: Invalid total length %d\n", total_len);
+        return -5;
+    }
+    // 信息单元内容长度 = 总长度 - 帧头 - CRC
+    uint16_t info_content_len = total_len - sizeof(NetFrameHeader) - NET_CRC_LEN;
     if (info_content_len > MAX_DATA_LEN)
     {
         printf("Parse error: Info content length %d exceeds max %d\n", info_content_len, MAX_DATA_LEN);
-        return -5;
+        return -6;
     }
     // 提取信息单元内容（即原来的命令帧数据）
     uint8_t *info_content = (uint8_t *)(recv_buf + sizeof(NetFrameHeader));
     if (info_content_len < 1)
     {
         printf("Parse error: Info content too short\n");
-        return -6;
+        return -7;
     }
     // 信息单元内容的第一字节是原命令码
     *cmd_code = header->infoId;    // 沿用原命令码作为信息单元标识
@@ -133,7 +195,7 @@ int32_t protocol_parse_frame(uint8_t *recv_buf, uint16_t recv_len,
     if (calc_crc != recv_crc)
     {
         printf("Parse error: CRC mismatch (calc 0x%04X, got 0x%04X)\n", calc_crc, recv_crc);
-        return -7;
+        return -8;
     }
     return 0;
 }
@@ -155,6 +217,11 @@ uint16_t protocol_build_frame(uint8_t *send_buf, uint8_t cmd_code,
     if (data_len > MAX_DATA_LEN)
     {
         printf("Warning: Truncating info content from %d to %d\n", data_len, MAX_DATA_LEN);
+        return 0;
+    }
+    if (data_len > 0 && data_buf == NULL)
+    {
+        printf("Error: data_buf is NULL while data_len is %d\n", data_len);
         return 0;
     }
     uint16_t total_len = sizeof(NetFrameHeader) + data_len + NET_CRC_LEN; // 24字节固定头 + 信息单元内容 + CRC校验
@@ -197,8 +264,12 @@ uint16_t protocol_build_frame(uint8_t *send_buf, uint8_t cmd_code,
 
 // Handle standby command
 static uint8_t handle_standby_cmd(const uint8_t *req_data, uint8_t req_len,
-                                  uint8_t *resp_data, uint16_t *resp_len)
+                                  uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
@@ -215,18 +286,30 @@ static uint8_t handle_standby_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle enable command
 static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
-                                 uint8_t *resp_data, uint16_t *resp_len)
+                                 uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
     }
-    uint16_t enable_status, execution_result;
+    uint16_t enable_status;
+    uint16_t execution_result = STATUS_SUCCESS;
+    sanitize_runtime_params();
+    uint16_t dac_factor = (devParams.DACFactor == 0) ? 39 : devParams.DACFactor;
+    if (devParams.DACFactor == 0)
+    {
+        printf("Warning: CMD_ENABLE uses fallback DACFactor=39\n");
+    }
     memcpy(&enable_status, req_data, sizeof(uint16_t));
 
     if (enable_status == 0x01)
     {
-        timestamp = get_ntp_timestamp(); // 启用时同步时间
+        //timestamp = get_ntp_timestamp(); // 启用时同步时间
+    	timestamp = 0;
         shared_wb(&timestamp, sizeof(uint64_t));
 
         #ifdef RESTORE_NAND
@@ -240,7 +323,7 @@ static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
         fpgaParams.ADC_sampEnable = DEV_STATUS_ENABLE;
         fpgaParams.DAC_outEnable = DEV_STATUS_ENABLE;
         fpgaParams.DAC_freq = g_lms_f0 / 10;
-        fpgaParams.DAC_amp = devParams.effectiveValue * 1000 / 39;
+        fpgaParams.DAC_amp = devParams.effectiveValue * 1000 / dac_factor;
         // int i;
         // for (i = 0; i < 51; i++)
         //     fpgaParams.reserved[i] = i;
@@ -248,7 +331,7 @@ static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
         srio_send();
 
         #ifdef RESTORE_RAM
-        shared_inv(resultPtr, sizeof(resultPtr)); // 使缓存无效，确保数据一致
+        shared_inv(&resultPtr, sizeof(resultPtr)); // 同步指针变量本身，避免对NULL地址做Cache操作
         if(resultPtr == NULL)
             resultPtr = (float *)malloc(MAX_RESULE_NUMBER * sizeof(SharedResults_t));
         if (resultPtr == NULL)
@@ -261,7 +344,7 @@ static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
             //memset(resultPtr, 0, MAX_RESULE_NUMBER * sizeof(SharedResults_t)); // 初始化内存
             printf("Memory allocated successfully, resultPtr = %p\n", resultPtr);
             execution_result = STATUS_SUCCESS;
-            shared_wb(resultPtr, sizeof(resultPtr));     
+            shared_wb(&resultPtr, sizeof(resultPtr));
         }
         #endif
 
@@ -291,7 +374,7 @@ static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
         fpgaParams.ADC_sampEnable = DEV_STATUS_STANDBY;
         fpgaParams.DAC_outEnable = DEV_STATUS_STANDBY;
         fpgaParams.DAC_freq = g_lms_f0 / 10;
-        fpgaParams.DAC_amp = devParams.effectiveValue * 1000 / 39;
+        fpgaParams.DAC_amp = devParams.effectiveValue * 1000 / dac_factor;
         // for (i = 0; i < 51; i++)
         //     fpgaParams.reserved[i] = i;
         srio_send();
@@ -333,8 +416,12 @@ static uint8_t handle_enable_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle self-check command
 static uint8_t handle_self_check_cmd(const uint8_t *req_data, uint8_t req_len,
-                                     uint8_t *resp_data, uint16_t *resp_len)
+                                     uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 4)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     uint16_t execution_result;
     if (req_len != 2)
     {
@@ -354,11 +441,14 @@ static uint8_t handle_self_check_cmd(const uint8_t *req_data, uint8_t req_len,
 // Handle parameter set command
 DeviceParams *newParams = NULL;
 static uint8_t handle_param_set_cmd(const uint8_t *req_data, uint8_t req_len,
-                                    uint8_t *resp_data, uint16_t *resp_len)
+                                    uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     uint16_t execution_result;
-    // if (req_len != sizeof(DeviceParams))
-    if (req_len != 54)
+    if (req_len != sizeof(DeviceParams))
     {
         execution_result = STATUS_PARAM_ERR;
         memcpy((uint16_t *)resp_data, &execution_result, sizeof(uint16_t));
@@ -367,6 +457,7 @@ static uint8_t handle_param_set_cmd(const uint8_t *req_data, uint8_t req_len,
     }
 
     memcpy(&devParams, req_data, sizeof(DeviceParams));
+    sanitize_runtime_params();
 
     g_mad_threshold = devParams.MADThreshold / 1000.0f;
     g_fft_threshold = devParams.FFTThreshold / 1000.0f;
@@ -390,39 +481,47 @@ static uint8_t handle_param_set_cmd(const uint8_t *req_data, uint8_t req_len,
 
     printf("Parameters set: mode=%d, fft_time_window=%d, MADThreshold=%d, LMSThreshold=%d, FFTThreshold=%d, "
            "MADTimes=%d, LMSTimes=%d, FFTTimes=%d, "
-           "signalFrequency=%d, effectiveValue=%d, LMSOrder=%d, LMSStep=%d, MADStopFreq=%d\n",
+           "signalFrequency=%d, effectiveValue=%d, LMSOrder=%d, LMSStep=%d, MADStopFreq=%d, DACFactor=%d\n",
            devParams.algorithmMode, devParams.fft_time_window, devParams.MADThreshold, devParams.LMSThreshold,
            devParams.FFTThreshold, devParams.MADTimes, devParams.LMSTimes, devParams.FFTTimes,
-           devParams.signalFrequency, devParams.effectiveValue, devParams.LMSOrder, devParams.LMSStep, devParams.MADStopFreq);
+           devParams.signalFrequency, devParams.effectiveValue, devParams.LMSOrder, devParams.LMSStep, devParams.MADStopFreq, devParams.DACFactor);
 
     return STATUS_SUCCESS;
 }
 
 // Handle parameter read command
 static uint8_t handle_param_read_cmd(const uint8_t *req_data, uint8_t req_len,
-                                     uint8_t *resp_data, uint16_t *resp_len)
+                                     uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < sizeof(DeviceParams))
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
     }
     memcpy((DeviceParams *)resp_data, &devParams, sizeof(DeviceParams));
 
-    *resp_len = 54; // Return full size of DeviceParams
+    *resp_len = sizeof(DeviceParams); // Return full size of DeviceParams
 
     printf("Parameters read: mode=%d, fft_time_window=%d, MADThreshold=%d, LMSThreshold=%d, FFTThreshold=%d, "
            "MADTimes=%d, LMSTimes=%d, FFTTimes=%d, "
-           "signalFrequency=%d, effectiveValue=%d, LMSOrder=%d, LMSStep=%d, MADStopFreq=%d\n",
+           "signalFrequency=%d, effectiveValue=%d, LMSOrder=%d, LMSStep=%d, MADStopFreq=%d, DACFactor=%d\n",
            devParams.algorithmMode, devParams.fft_time_window, devParams.MADThreshold, devParams.LMSThreshold,
            devParams.FFTThreshold, devParams.MADTimes, devParams.LMSTimes, devParams.FFTTimes,
-           devParams.signalFrequency, devParams.effectiveValue, devParams.LMSOrder, devParams.LMSStep, devParams.MADStopFreq);
+           devParams.signalFrequency, devParams.effectiveValue, devParams.LMSOrder, devParams.LMSStep, devParams.MADStopFreq, devParams.DACFactor);
     return STATUS_SUCCESS;
 }
 
 // Handle detection result query
 static uint8_t handle_detect_query_cmd(const uint8_t *req_data, uint8_t req_len,
-                                       uint8_t *resp_data, uint16_t *resp_len)
+                                       uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < sizeof(TargetStatus))
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
@@ -483,14 +582,19 @@ static uint8_t handle_detect_query_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle heartbeat command
 static uint8_t handle_heartbeat_cmd(const uint8_t *req_data, uint8_t req_len,
-                                    uint8_t *resp_data, uint16_t *resp_len)
+                                    uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 0)
     {
         return STATUS_PARAM_ERR;
     }
 
     resp_data[0] = HEARTBEAT_STATUS_OK;
+    resp_data[1] = 0;
     *resp_len = 2;
     printf("Heartbeat: status=0x%02X\n", resp_data[0]);
 
@@ -499,8 +603,12 @@ static uint8_t handle_heartbeat_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle time sync command
 static uint8_t handle_time_sync_cmd(const uint8_t *req_data, uint8_t req_len,
-                                    uint8_t *resp_data, uint16_t *resp_len)
+                                    uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 10)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 8)
     {
         return STATUS_PARAM_ERR;
@@ -521,6 +629,7 @@ static uint8_t handle_time_sync_cmd(const uint8_t *req_data, uint8_t req_len,
     // Return original time data + status code
     memcpy(resp_data, req_data, 8);
     resp_data[8] = STATUS_SUCCESS;
+    resp_data[9] = 0;
     *resp_len = 10;
 
     printf("Time sync: %04d-%02d-%02d %02d:%02d:%02d.%04d\n",
@@ -531,8 +640,12 @@ static uint8_t handle_time_sync_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle data clear command
 static uint8_t handle_data_clear_cmd(const uint8_t *req_data, uint8_t req_len,
-                                     uint8_t *resp_data, uint16_t *resp_len)
+                                     uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
@@ -552,8 +665,11 @@ static uint8_t handle_data_clear_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle result data readback command
 static uint8_t handle_result_read_cmd(const uint8_t *req_data, uint8_t req_len,
-                                      uint8_t *resp_data, uint16_t *resp_len)
+                                      uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < (2 + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(unsigned long long)))
+        return STATUS_UNKNOWN_ERR;
+
     if (req_len != 2)
         return STATUS_PARAM_ERR;
 
@@ -561,12 +677,19 @@ static uint8_t handle_result_read_cmd(const uint8_t *req_data, uint8_t req_len,
     uint16_t execution_result = STATUS_SUCCESS;
     memcpy(resp_data, &execution_result, sizeof(execution_result));
     resp_pos += 2;
+    if (RESULT_NUM_ONCE_READ == 0)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     uint32_t total_restore_frames = 0;
     // 正确读取帧数
     // uint32_t j = 300;
     #ifdef RESTORE_NAND  
     // nandflash_write(NAND_FRAME_NUMBER_OFFSET, sizeof(j), (uint8_t *)&j);
-    load_frame_counter(&total_restore_frames);
+    if (load_frame_counter(&total_restore_frames) != 0)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     #endif
 
     #ifdef RESTORE_RAM
@@ -584,7 +707,10 @@ static uint8_t handle_result_read_cmd(const uint8_t *req_data, uint8_t req_len,
     printf("Total send times: %u\n", total_send_times);
 
     #ifdef RESTORE_NAND
-    load_timestamp(&first_frame_timestamp);
+    if (load_timestamp(&first_frame_timestamp) != 0)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     #endif
     #ifdef RESTORE_RAM
     first_frame_timestamp = timestamp;
@@ -598,8 +724,12 @@ static uint8_t handle_result_read_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Handle data collection mode command
 static uint8_t handle_collect_mode_cmd(const uint8_t *req_data, uint8_t req_len,
-                                       uint8_t *resp_data, uint16_t *resp_len)
+                                       uint8_t *resp_data, uint16_t *resp_len, uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
     if (req_len != 2)
     {
         return STATUS_PARAM_ERR;
@@ -612,6 +742,7 @@ static uint8_t handle_collect_mode_cmd(const uint8_t *req_data, uint8_t req_len,
 
     // Return status code
     resp_data[0] = STATUS_SUCCESS;
+    resp_data[1] = 0;
     *resp_len = 2;
 
     printf("Collection mode set: mode=%d, param=%d\n", mode, param);
@@ -621,46 +752,59 @@ static uint8_t handle_collect_mode_cmd(const uint8_t *req_data, uint8_t req_len,
 
 // Main command handler
 uint16_t protocol_process_command(uint8_t cmd_code, const uint8_t *req_data,
-                                  uint8_t req_len, uint8_t *resp_data, uint16_t *resp_len)
+                                  uint8_t req_len, uint8_t *resp_data, uint16_t *resp_len,
+                                  uint16_t resp_buf_size)
 {
+    if (resp_data == NULL || resp_len == NULL || resp_buf_size < 2)
+    {
+        return STATUS_UNKNOWN_ERR;
+    }
+    if (req_len > 0 && req_data == NULL)
+    {
+        uint16_t status = STATUS_PARAM_ERR;
+        memcpy((uint16_t *)resp_data, &status, sizeof(uint16_t));
+        *resp_len = sizeof(uint16_t);
+        return status;
+    }
+
     uint16_t status = STATUS_SUCCESS;
     printf("Processing command 0x%02X, data length %d\n", cmd_code, req_len);
 
     switch (cmd_code)
     {
     case CMD_STANDBY:
-        status = handle_standby_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_standby_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_ENABLE:
-        status = handle_enable_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_enable_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         printf("Enable command processed, status: 0x%02X\n", status);
         break;
     case CMD_TIME_SYNC:
-        status = handle_time_sync_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_time_sync_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_SELF_CHECK:
-        status = handle_self_check_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_self_check_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_PARAM_SET:
-        status = handle_param_set_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_param_set_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_PARAM_READ:
-        status = handle_param_read_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_param_read_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_DETECT_QUERY:
-        status = handle_detect_query_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_detect_query_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     // case CMD_HEARTBEAT:
-    //     status = handle_heartbeat_cmd(req_data, req_len, resp_data, resp_len);
+    //     status = handle_heartbeat_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
     //     break;
     case CMD_DATA_CLEAR:
-        status = handle_data_clear_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_data_clear_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_RESULT_READ:
-        status = handle_result_read_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_result_read_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     case CMD_COLLECT_MODE:
-        status = handle_collect_mode_cmd(req_data, req_len, resp_data, resp_len);
+        status = handle_collect_mode_cmd(req_data, req_len, resp_data, resp_len, resp_buf_size);
         break;
     default:
         printf("Unknown command: 0x%02X\n", cmd_code);
@@ -676,5 +820,6 @@ uint16_t protocol_process_command(uint8_t cmd_code, const uint8_t *req_data,
         memcpy((uint16_t *)resp_data, &status, sizeof(uint16_t));
         *resp_len = sizeof(uint16_t);
     }
+    printf("Command done: cmd=0x%02X status=0x%02X resp_len=%u\n", cmd_code, status, (unsigned)*resp_len);
     return status;
 }

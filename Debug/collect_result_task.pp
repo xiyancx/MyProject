@@ -274,6 +274,7 @@ collect_result_task.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/i
 collect_result_task.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/unaccess.h
 collect_result_task.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h
 collect_result_task.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdarg.h
+collect_result_task.obj: C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h
 collect_result_task.obj: ../nand_op.h
 collect_result_task.obj: ../shared_mem.h
 collect_result_task.obj: C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/Cache.h
@@ -557,6 +558,7 @@ C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/mathl.h:
 C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/unaccess.h: 
 C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdio.h: 
 C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/stdarg.h: 
+C:/Program\ Files/ti/ccsv5/tools/compiler/c6000_7.4.4/include/string.h: 
 ../nand_op.h: 
 ../shared_mem.h: 
 C:/PROGRA~1/ti/bios_6_33_06_50/packages/ti/sysbios/family/c66/Cache.h: 
